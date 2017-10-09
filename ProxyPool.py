@@ -1,14 +1,16 @@
 from flask import Flask
-from Spider import Spider
+import redis
 
 app = Flask(__name__)
-spider = Spider()
-spider()
 
+pool = redis.ConnectionPool()
+redis_connection = redis.Redis(connection_pool=pool)
 
 @app.route('/')
 def get_ip():
-    return spider.get_random_ip()
+    redis_connection = redis.Redis(connection_pool=pool)
+    result = redis_connection.srandmember("proxies")
 
+    return result
 
 app.run()

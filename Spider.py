@@ -1,15 +1,14 @@
 import requests
 import pyquery
-import random
-
+import redis
 
 # 调用Spider()会自动验证代理是否过期
 # 如果proxies里的代理数量小于30则重新爬取数据
 # 调用get_random_ip可以获得ip代理
-# 数据存入redis中
 class Spider():
     def __init__(self):
-        self.proxies = set()
+        self.redis_pool = redis.ConnectionPool()
+        self.proxy_pool_name = "proxies"
 
     def get_html(self, page=1, try_time=2):
         # 设置请求头
@@ -57,21 +56,33 @@ class Spider():
             return True
 
     def __call__(self):
+        redis_connection = redis.Redis(connection_pool=self.redis_pool)
+        proxies = redis_connection.smembers(self.proxy_pool_name)
+        pipe = redis_connection.pipeline(transaction=True)
         # 开始验证当前的ip代理是否有效
-        for each in self.proxies:
+        for each in proxies:
             if (not self.verify(each)):
-                self.proxies.remove(each)
+                redis_connection.smove(self.proxy_pool_name, "dst", each)
         i = 1
-        while len(self.proxies) < 10:
+        while redis_connection.scard(self.proxy_pool_name) < 10:
             l = self.parse(self.get_html(page=i))
             for each in l:
                 if (self.verify(each)):
-                    self.proxies.add(each)
+                    redis_connection.sadd(self.proxy_pool_name, each)
+        pipe.execute()
+
+
 
     def get_random_ip(self):
-        r = random.sample(self.proxies, 1)
-        return r[0]
-
+        redis_connection = redis.Redis(connection_pool=self.redis_pool)
+        result = redis_connection.srandmember(self.proxy_pool_name)
+        return result
 
 s = Spider()
 s()
+redis_connection = redis.Redis(connection_pool=s.redis_pool)
+proxies = redis_connection.smembers(s.proxy_pool_name)
+
+# 开始验证当前的ip代理是否有效
+for each in proxies:
+    print(each)
