@@ -1,3 +1,4 @@
+# encoding:utf-8
 from flask import Flask
 import redis
 from Config import parse
