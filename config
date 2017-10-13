@@ -1,0 +1,7 @@
+[database]
+database_name = proxies
+[spider]
+sleep_time = 300
+[pool]
+port = 9898
+host = 127.0.0.1
