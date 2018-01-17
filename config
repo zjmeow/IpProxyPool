@@ -1,5 +1,5 @@
 [database]
-database_name = proxies
+database_name = fix_bug
 [spider]
 sleep_time = 300
 [pool]

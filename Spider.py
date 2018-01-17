@@ -51,7 +51,8 @@ class Spider():
     def verify(self, ip):
         proxy = {'http': ip}
         try:
-            response = requests.get('https://www.baidu.com/')
+            response = requests.get('http://www.cnblogs.com/yyf031602438/p/7642763.html', proxies=proxy, timeout=2)
+            print('ip ', ip, 'is valid')
         except Exception:
             print('ip ', ip, 'is invalid')
             return False
@@ -67,7 +68,7 @@ class Spider():
             if (not self.verify(each)):
                 redis_connection.smove(self.proxy_pool_name, "dst", each)
         i = 1
-        while redis_connection.scard(self.proxy_pool_name) < 10:
+        while redis_connection.scard(self.proxy_pool_name) < 30:
             l = self.parse(self.get_html(page=i))
             for each in l:
                 if (self.verify(each)):

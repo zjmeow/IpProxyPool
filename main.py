@@ -10,7 +10,7 @@ from Spider import Spider
 host = parse['pool']['host']
 port = parse['pool']['port']
 database_name = parse['database']['database_name']
-sleep_time = parse['spider']['sleep_time']
+sleep_time = int(parse['spider']['sleep_time'])
 s = Spider(database_name)
 
 
